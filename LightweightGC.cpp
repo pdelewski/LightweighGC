@@ -2,6 +2,8 @@
 #include <cassert>
 #include <set>
 
+enum {OWNER, ALIAS};
+
 struct resource 
 {
   resource():counter(0) {}
@@ -96,6 +98,11 @@ private:
   T* ptr;
 };
 
+template<typename T>
+auto make_owning_ptr(T *ptr) -> smart_ptr<T>
+{
+  return smart_ptr<T>(true, ptr);
+}
 
 struct node : public resource
 {
@@ -126,8 +133,8 @@ void traverse(const smart_ptr<node>& n)
 
 void test1()
 {
-  smart_ptr<node> last (true,new node(2));
-  smart_ptr<node> head (true,new node(1));
+  auto head = make_owning_ptr(new node(1));
+  auto last = make_owning_ptr(new node(2));
 
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
