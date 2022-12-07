@@ -115,7 +115,7 @@ void traverse(const smart_ptr<node>& n)
     current.clear_ownership();
     if (visited.find(current.operator->()) != visited.end())
     {
-      current = smart_ptr<node>(false,nullptr);
+      current = nullptr;
       continue;
     }
     std::cout << current->value << std::endl;
