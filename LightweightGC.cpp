@@ -12,6 +12,7 @@ template<typename T>
 struct smart_ptr
 {
   smart_ptr():owner(true), ptr(nullptr) {}
+  smart_ptr(T* p):owner(false), ptr(p) {}
   explicit smart_ptr(bool owner, T *p) :owner(owner), ptr(p)
   {
     if (ptr && !owner)
@@ -57,7 +58,7 @@ struct smart_ptr
       --ptr->counter;
     }
     if (owner) {
-      ptr->dump();
+      assert(ptr->counter == 0);
       delete ptr;
     }
   }
@@ -75,14 +76,21 @@ struct smart_ptr
     return owner;
   }
 
-  void set_owner()
+  void set_ownership()
   {
     owner = true;
   }
-  void clear_owner()
+  void clear_ownership()
   {
     owner = false;
   }
+
+  void take_ownership(smart_ptr<T>& rhs)
+  {
+    clear_ownership();
+    *this = rhs;
+  }
+
 private:
   bool owner;
   T* ptr;
@@ -104,7 +112,7 @@ void traverse(const smart_ptr<node>& n)
   smart_ptr<node> current = n;
 
   while (current) {
-    current.clear_owner();
+    current.clear_ownership();
     if (visited.find(current.operator->()) != visited.end())
     {
       current = smart_ptr<node>(false,nullptr);
@@ -124,8 +132,9 @@ void test1()
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
-  last.clear_owner();
+  last.clear_ownership();
   head->next = last;
+  //head->next.take_ownership(last);
 
   traverse(head);
 }
@@ -136,15 +145,29 @@ void test2()
 
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
-  head->next.clear_owner();
+  head->next.clear_ownership();
   head->next = head;
+  head->next.clear_ownership();
+  //head->next.take_ownership(head);
   
   traverse(head);
+
+  head->next = nullptr;
+}
+
+void test3()
+{
+  smart_ptr<node> alias;
+  smart_ptr<node> p(true, new node(1));
+  //smart_ptr<node> alias;
+  alias.clear_ownership();
+  alias = p;
 }
 
 int main()
 {
   test1();
   test2();
+  test3();
   return 0;
 }
