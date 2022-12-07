@@ -104,6 +104,12 @@ auto make_owning_ptr(T *ptr) -> smart_ptr<T>
   return smart_ptr<T>(true, ptr);
 }
 
+template<typename T>
+auto make_alias(T *ptr) -> smart_ptr<T>
+{
+  return smart_ptr<T>(false, ptr);
+}
+
 struct node : public resource
 {
   int value;
@@ -116,7 +122,7 @@ struct node : public resource
 void traverse(const smart_ptr<node>& n)
 {
   std::set<node*> visited;
-  smart_ptr<node> current = n;
+  auto current = n;
 
   while (current) {
     current.clear_ownership();
@@ -148,7 +154,7 @@ void test1()
 
 void test2()
 {
-  smart_ptr<node> head (true,new node(1));
+  auto head = make_owning_ptr(new node(1));
 
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
