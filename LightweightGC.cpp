@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cassert>
+#include <set>
 
 struct resource 
 {
@@ -9,9 +11,10 @@ struct resource
 template<typename T>
 struct smart_ptr
 {
-  explicit smart_ptr(T *p = 0) :ptr(p) 
+  smart_ptr():owner(true), ptr(nullptr) {}
+  explicit smart_ptr(bool owner, T *p) :owner(owner), ptr(p)
   {
-    if (ptr) 
+    if (ptr && !owner)
     {
       ++ptr->counter;
     }
@@ -20,7 +23,7 @@ struct smart_ptr
   smart_ptr(const smart_ptr& rhs)
   {
     ptr = rhs.ptr;
-    if (ptr)
+    if (ptr && !owner)
     {
       ++ptr->counter;
     }
@@ -31,11 +34,14 @@ struct smart_ptr
     if (&rhs == this) {
       return *this;
     }
-    if (ptr) {
+
+    assert ((owner && rhs.is_owner())==false);
+
+    if (ptr && !owner) {
       --ptr->counter;
     }
     ptr = rhs.ptr;
-    if (ptr) {
+    if (ptr && !owner) {
       ++ptr->counter;
     }
     return *this;
@@ -47,7 +53,11 @@ struct smart_ptr
     {
       return;
     }
-    if (--ptr->counter == 0) {
+    if (ptr && !owner) {
+      --ptr->counter;
+    }
+    if (owner) {
+      ptr->dump();
       delete ptr;
     }
   }
@@ -60,7 +70,21 @@ struct smart_ptr
     return ptr != 0;
   }
     
+  bool is_owner() const
+  {
+    return owner;
+  }
+
+  void set_owner()
+  {
+    owner = true;
+  }
+  void clear_owner()
+  {
+    owner = false;
+  }
 private:
+  bool owner;
   T* ptr;
 };
 
@@ -76,19 +100,51 @@ struct node : public resource
 
 void traverse(const smart_ptr<node>& n)
 {
+  std::set<node*> visited;
   smart_ptr<node> current = n;
+
   while (current) {
+    current.clear_owner();
+    if (visited.find(current.operator->()) != visited.end())
+    {
+      current = smart_ptr<node>(false,nullptr);
+      continue;
+    }
     std::cout << current->value << std::endl;
+    visited.insert(current.operator->());
     current = current->next;
   }
 }
 
-int main() {
-  smart_ptr<node> last (new node(2));
-  smart_ptr<node> head (new node(1));
- 
+void test1()
+{
+  smart_ptr<node> last (true,new node(2));
+  smart_ptr<node> head (true,new node(1));
+
+  assert(last.is_owner() == true);
+  assert(head.is_owner() == true);
+  assert(head->next.is_owner() == true);
+  last.clear_owner();
   head->next = last;
+
+  traverse(head);
+}
+
+void test2()
+{
+  smart_ptr<node> head (true,new node(1));
+
+  assert(head.is_owner() == true);
+  assert(head->next.is_owner() == true);
+  head->next.clear_owner();
+  head->next = head;
   
   traverse(head);
+}
+
+int main()
+{
+  test1();
+  test2();
   return 0;
 }
