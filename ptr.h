@@ -44,6 +44,20 @@ namespace ucore
       }
     }
 
+    gen_ptr(const gen_ptr&& rhs)
+      :owner(rhs.owner) ,ptr(rhs.ptr)
+    {}
+
+    gen_ptr& operator=(gen_ptr&& rhs)
+    {
+      if (ptr && !owner) {
+        --ptr->counter;
+      }
+      owner = std::move(rhs.owner);
+      ptr = std::move(rhs.ptr);
+      return *this;
+    }
+
     gen_ptr& operator=(const gen_ptr& rhs)
     {
       if (&rhs == this) {
@@ -84,19 +98,19 @@ namespace ucore
     operator bool() {
       return ptr != 0;
     }
-      
+
+    gen_ptr& with_source_location(const std::string& f, size_t l)
+    {
+      file = f;
+      line = l;
+      return *this;
+    }
+
     bool is_owner() const
     {
       return owner;
     }
 
-    void set_ownership()
-    {
-      owner = true;
-      if (ptr) {
-        --ptr->counter;
-      }
-    }
     void convert_to_alias()
     {
       owner = false;
@@ -116,6 +130,8 @@ namespace ucore
   private:
     bool owner;
     T* ptr;
+    std::string file;
+    size_t line;
   };
 
   template<typename T>
