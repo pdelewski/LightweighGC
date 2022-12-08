@@ -1,136 +1,20 @@
 #include <iostream>
-#include <cassert>
-#include <set>
+#include "ptr.h"
 
-enum {OWNER, ALIAS};
-
-struct resource 
-{
-  resource():counter(0) {}
-  int counter;
-};
-
-template<typename T>
-struct smart_ptr
-{
-  smart_ptr():owner(true), ptr(nullptr) {}
-  smart_ptr(T* p):owner(false), ptr(p) {}
-  explicit smart_ptr(bool owner, T *p) :owner(owner), ptr(p)
-  {
-    if (ptr && !owner)
-    {
-      ++ptr->counter;
-    }
-  }
-  
-  smart_ptr(const smart_ptr& rhs)
-  {
-    ptr = rhs.ptr;
-    if (ptr && !owner)
-    {
-      ++ptr->counter;
-    }
-  }
-
-  smart_ptr& operator=(const smart_ptr& rhs)
-  {
-    if (&rhs == this) {
-      return *this;
-    }
-
-    assert ((owner && rhs.is_owner())==false);
-
-    if (ptr && !owner) {
-      --ptr->counter;
-    }
-    ptr = rhs.ptr;
-    if (ptr && !owner) {
-      ++ptr->counter;
-    }
-    return *this;
-  }
-  
-  ~smart_ptr()
-  {
-    if (!ptr) 
-    {
-      return;
-    }
-    if (ptr && !owner) {
-      --ptr->counter;
-    }
-    if (owner) {
-      assert(ptr->counter == 0);
-      delete ptr;
-    }
-  }
-
-  T* operator->() {
-    return ptr;
-  }
-
-  operator bool() {
-    return ptr != 0;
-  }
-    
-  bool is_owner() const
-  {
-    return owner;
-  }
-
-  void set_ownership()
-  {
-    owner = true;
-    if (ptr) {
-      --ptr->counter;
-    }
-  }
-  void clear_ownership()
-  {
-    owner = false;
-    if (ptr) {
-      ++ptr->counter;
-    }
-  }
-
-  void take_ownership(smart_ptr<T>& rhs)
-  {
-    clear_ownership();
-    *this = rhs;
-  }
-  int alias_counter() const {
-    return ptr->counter;
-  }
-private:
-  bool owner;
-  T* ptr;
-};
-
-template<typename T>
-auto make_owning_ptr(T *ptr) -> smart_ptr<T>
-{
-  return smart_ptr<T>(true, ptr);
-}
-
-template<typename T>
-auto make_alias(T *ptr) -> smart_ptr<T>
-{
-  return smart_ptr<T>(false, ptr);
-}
-
-struct node : public resource
+struct node : public ucore::resource
 {
   int value;
   node() { value = 0; }
   node(int v):value(v) {}
-  smart_ptr<node> next;
+  ucore::gen_ptr<node> next;
   void dump() { std::cout << "node:" << value << std::endl;}
 };
 
-void traverse(const smart_ptr<node>& n)
+void traverse(const ucore::gen_ptr<node>& n)
 {
   std::set<node*> visited;
-  auto current = n;
+  auto current = ucore::make_alias<node>();
+  current = n;
   assert(current.is_owner() == false);
   while (current) {
 
@@ -147,28 +31,25 @@ void traverse(const smart_ptr<node>& n)
 
 void test1()
 {
-  auto head = make_owning_ptr(new node(1));
-  auto last = make_owning_ptr(new node(2));
+  auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
+  auto last = ucore::make_owning_ptr(new node(2), __FILE__, __LINE__);
 
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
 
-  last.clear_ownership();
-  head->next = last;
-  //head->next.take_ownership(last);
+  head->next.move_ownership_from(last);
 
   traverse(head);
 }
 
 void test2()
 {
-  auto head = make_owning_ptr(new node(1));
+  auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
-  head->next.clear_ownership();
-  head->next = head;
-  //head->next.take_ownership(head);
+
+  head->next.move_ownership_from(head);
   
   traverse(head);
 
@@ -177,9 +58,9 @@ void test2()
 
 void test3()
 {
-  smart_ptr<node> alias;
-  auto root = make_owning_ptr(new node(1));
-  alias.clear_ownership();
+  auto alias = ucore::make_alias<node>(nullptr,  __FILE__, __LINE__);
+  auto root = ucore::make_owning_ptr(new node(1),  __FILE__, __LINE__);
+  alias.convert_to_alias();
   alias = root;
   assert(alias.alias_counter() == 1);
   alias = nullptr;
