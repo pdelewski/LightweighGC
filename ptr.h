@@ -95,6 +95,10 @@ namespace ucore
       return ptr;
     }
 
+    bool operator<(const gen_ptr& rhs) const{
+      return ptr < rhs.ptr;
+    }
+
     operator bool() {
       return ptr != 0;
     }

@@ -12,18 +12,18 @@ struct node : public ucore::resource
 
 void traverse(const ucore::gen_ptr<node>& n, int expected_size)
 {
-  std::set<node*> visited;
+  std::set<ucore::gen_ptr<node>> visited;
   auto current = ucore::make_alias<node>(); current.with_source_location(__FILE__,__LINE__);
   current.with_source_location(__FILE__,__LINE__); current = n;
   auto counter = 0;
   assert(current.is_owner() == false);
   while (current) {
-    if (visited.find(current.operator->()) != visited.end())
+    if (visited.find(current) != visited.end())
     {
       current = nullptr;
       continue;
     }
-    visited.insert(current.operator->());
+    visited.insert(current);
     current.with_source_location(__FILE__,__LINE__); current = current->next;
     ++counter;
   }
