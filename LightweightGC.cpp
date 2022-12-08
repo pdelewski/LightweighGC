@@ -31,7 +31,7 @@ struct smart_ptr
       ++ptr->counter;
     }
   }
-  
+
   smart_ptr& operator=(const smart_ptr& rhs)
   {
     if (&rhs == this) {
@@ -81,10 +81,16 @@ struct smart_ptr
   void set_ownership()
   {
     owner = true;
+    if (ptr) {
+      --ptr->counter;
+    }
   }
   void clear_ownership()
   {
     owner = false;
+    if (ptr) {
+      ++ptr->counter;
+    }
   }
 
   void take_ownership(smart_ptr<T>& rhs)
@@ -92,7 +98,9 @@ struct smart_ptr
     clear_ownership();
     *this = rhs;
   }
-
+  int alias_counter() const {
+    return ptr->counter;
+  }
 private:
   bool owner;
   T* ptr;
@@ -123,9 +131,9 @@ void traverse(const smart_ptr<node>& n)
 {
   std::set<node*> visited;
   auto current = n;
-
+  assert(current.is_owner() == false);
   while (current) {
-    current.clear_ownership();
+
     if (visited.find(current.operator->()) != visited.end())
     {
       current = nullptr;
@@ -145,6 +153,7 @@ void test1()
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
+
   last.clear_ownership();
   head->next = last;
   //head->next.take_ownership(last);
@@ -155,12 +164,10 @@ void test1()
 void test2()
 {
   auto head = make_owning_ptr(new node(1));
-
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
   head->next.clear_ownership();
   head->next = head;
-  head->next.clear_ownership();
   //head->next.take_ownership(head);
   
   traverse(head);
@@ -172,9 +179,10 @@ void test3()
 {
   smart_ptr<node> alias;
   auto root = make_owning_ptr(new node(1));
-  //smart_ptr<node> alias;
   alias.clear_ownership();
   alias = root;
+  assert(alias.alias_counter() == 1);
+  alias = nullptr;
 }
 
 int main()
