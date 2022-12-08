@@ -171,10 +171,10 @@ void test2()
 void test3()
 {
   smart_ptr<node> alias;
-  smart_ptr<node> p(true, new node(1));
+  auto root = make_owning_ptr(new node(1));
   //smart_ptr<node> alias;
   alias.clear_ownership();
-  alias = p;
+  alias = root;
 }
 
 int main()
