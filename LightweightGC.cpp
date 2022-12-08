@@ -60,7 +60,6 @@ void test3()
 {
   auto alias = ucore::make_alias<node>(nullptr,  __FILE__, __LINE__);
   auto root = ucore::make_owning_ptr(new node(1),  __FILE__, __LINE__);
-  alias.convert_to_alias();
   alias = root;
   assert(alias.alias_counter() == 1);
   alias = nullptr;
