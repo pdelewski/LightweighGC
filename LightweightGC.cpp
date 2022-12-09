@@ -83,7 +83,7 @@ void test3() {
 }
 
 void sink(ucore::gen_ptr<node> n) { n.release(); }
-void sink2(ucore::gen_ptr<node> n) { }
+void sink2(ucore::gen_ptr<node> n) {}
 
 void test4() {
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);

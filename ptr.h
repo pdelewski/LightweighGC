@@ -41,7 +41,10 @@ struct gen_ptr {
   }
 
   gen_ptr(gen_ptr&& rhs)
-      : owner(std::move(rhs.owner)), ptr(std::move(rhs.ptr)), file(std::move(rhs.file)), line(std::move(rhs.line)) {
+      : owner(std::move(rhs.owner)),
+        ptr(std::move(rhs.ptr)),
+        file(std::move(rhs.file)),
+        line(std::move(rhs.line)) {
     assert(ptr->counter == 0);
     rhs.owner = false;
     rhs.ptr = nullptr;
