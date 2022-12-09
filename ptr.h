@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <map>
@@ -91,12 +92,13 @@ struct gen_ptr {
   }
 
   ~gen_ptr() {
-    if (!owner) {
-      assert(ptr == nullptr);
-    }
     remove_source_location();
     if (ptr && !owner) {
       --ptr->counter;
+    }
+
+    if (!owner) {
+      assert(ptr == nullptr);
     }
 
     if (ptr && owner) {
@@ -135,6 +137,16 @@ struct gen_ptr {
   }
 
   int alias_counter() const { return ptr->counter; }
+
+  void release() const {
+    if (ptr && !owner) {
+      --ptr->counter;
+    }
+    owner = false;
+    ptr = nullptr;
+    file = std::string();
+    line = 0;
+  }
 
  private:
   void init_source_location(const std::string& file, size_t line) {
@@ -185,11 +197,11 @@ struct gen_ptr {
     }
 #endif
   }
-  bool owner;
-  T* ptr;
+  mutable bool owner;
+  mutable T* ptr;
 #ifdef DEBUG
-  std::string file;
-  size_t line;
+  mutable std::string file;
+  mutable size_t line;
 #endif
 };
 

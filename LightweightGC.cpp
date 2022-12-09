@@ -12,24 +12,27 @@ struct node : public ucore::resource {
 };
 
 void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
-  std::set<size_t> visited;
+  std::set<ucore::gen_ptr<node>> visited;
   auto current = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   current.with_source_location(__FILE__, __LINE__);
   current = n;
   auto counter = 0;
   assert(current.is_owner() == false);
   while (current) {
-    if (visited.find((size_t)current.operator->()) != visited.end()) {
+    if (visited.find(current) != visited.end()) {
       break;
     }
     current.with_source_location(__FILE__, __LINE__);
-    visited.insert((size_t)current.operator->());
+    visited.insert(current);
 
     current.with_source_location(__FILE__, __LINE__);
     current = current->next;
     ++counter;
   }
-  current = nullptr;
+  for (auto it = visited.begin(); it != visited.end(); it++) {
+    it->release();
+  }
+  current.release();
   assert(counter == expected_size);
 }
 
