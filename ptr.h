@@ -105,8 +105,10 @@ namespace ucore
 
     gen_ptr& with_source_location(const std::string& f, size_t l)
     {
-      file = f;
-      line = l;
+      #ifdef DEBUG
+        file = f;
+        line = l;
+      #endif
       return *this;
     }
 
