@@ -88,7 +88,9 @@ void sink2(ucore::gen_ptr<node> n) {}
 void test4() {
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
+  alias.with_source_location(__FILE__, __LINE__);
   alias = head;
+  alias.with_source_location(__FILE__, __LINE__);
   sink(alias);
   alias.release();
 }

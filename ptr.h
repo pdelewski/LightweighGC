@@ -140,6 +140,7 @@ struct gen_ptr {
   int alias_counter() const { return ptr->counter; }
 
   void release() const {
+    remove_source_location();
     if (ptr && !owner) {
       --ptr->counter;
     }
@@ -164,7 +165,7 @@ struct gen_ptr {
     }
 #endif
   }
-  void remove_source_location() {
+  void remove_source_location() const {
 #ifdef DEBUG
     if (ptr) {
       auto it = ptr->aliases_locations.find(size_t(this));
