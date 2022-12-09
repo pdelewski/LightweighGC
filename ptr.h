@@ -32,15 +32,17 @@ struct gen_ptr {
   explicit gen_ptr(bool owner, T* p,
                    const std::string& file = std::string("undefined"),
                    const size_t line = 0)
-      : owner(owner), ptr(p) {
+      : owner(owner), ptr(p), file(file) {
     if (ptr && !owner) {
       ++ptr->counter;
     }
     init_source_location(file, line);
   }
 
-  gen_ptr(const gen_ptr&& rhs)
+  gen_ptr(gen_ptr&& rhs)
       : owner(rhs.owner), ptr(rhs.ptr), file(rhs.file), line(rhs.line) {
+    // no longer owner
+    rhs.owner = false;
     init_source_location(file, line);
   }
 
@@ -51,7 +53,8 @@ struct gen_ptr {
     }
     owner = std::move(rhs.owner);
     ptr = std::move(rhs.ptr);
-
+    file = std::move(rhs.file);
+    line = std::move(rhs.line);
     move_source_location();
     return *this;
   }
@@ -88,6 +91,9 @@ struct gen_ptr {
   }
 
   ~gen_ptr() {
+    if (!owner) {
+      assert(ptr == nullptr);
+    }
     remove_source_location();
     if (ptr && !owner) {
       --ptr->counter;
