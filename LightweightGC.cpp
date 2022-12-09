@@ -76,7 +76,6 @@ void test4()
   alias.with_source_location(__FILE__, __LINE__); sink(alias);
 }
 
-
 void test5()
 {
   auto head = ucore::make_owning_ptr(new node(1)); head.with_source_location(__FILE__, __LINE__);

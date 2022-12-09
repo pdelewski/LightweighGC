@@ -13,8 +13,8 @@ namespace ucore
     resource():counter(0) {}
     int counter;
     #ifdef DEBUG
-    std::set<std::pair<std::string,size_t>> aliases_locations;
-    std::pair<std::string,size_t> owner_location;
+      std::set<std::pair<std::string,size_t>> aliases_locations;
+      std::pair<std::string,size_t> owner_location;
     #endif
   };
 
@@ -134,8 +134,10 @@ namespace ucore
   private:
     bool owner;
     T* ptr;
-    std::string file;
-    size_t line;
+    #ifdef DEBUG
+      std::string file;
+      size_t line;
+    #endif
   };
 
   template<typename T>
