@@ -41,17 +41,15 @@ struct gen_ptr {
   }
 
   gen_ptr(gen_ptr&& rhs)
-      : owner(rhs.owner), ptr(rhs.ptr), file(rhs.file), line(rhs.line) {
-    // no longer owner
+      : owner(std::move(rhs.owner)), ptr(std::move(rhs.ptr)), file(std::move(rhs.file)), line(std::move(rhs.line)) {
+    assert(ptr->counter == 0);
     rhs.owner = false;
+    rhs.ptr = nullptr;
     init_source_location(file, line);
   }
 
   gen_ptr& operator=(gen_ptr&& rhs) {
     remove_source_location();
-    if (ptr && !owner) {
-      --ptr->counter;
-    }
     owner = std::move(rhs.owner);
     ptr = std::move(rhs.ptr);
     file = std::move(rhs.file);
