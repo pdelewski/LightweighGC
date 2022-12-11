@@ -7,7 +7,8 @@ struct node : public ucore::resource {
   int value;
   node() { value = 0; }
   node(int v) : value(v) {}
-  ucore::gen_ptr<node> next;
+  ucore::gen_ptr<node> next =
+      ucore::gen_ptr<node>(true, nullptr, __FILE__, __LINE__);
   void dump() { std::cout << "node:" << value << std::endl; }
 };
 
@@ -44,6 +45,7 @@ void test1() {
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
 
+  last.with_source_location(__FILE__, __LINE__);
   head->next.move_ownership_from(last);
 
   traverse(head, 2);
@@ -97,7 +99,6 @@ void test4() {
 
 void test5() {
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
-
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   alias = head;
   alias.release();

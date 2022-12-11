@@ -45,6 +45,12 @@ struct gen_ptr {
         ptr(std::move(rhs.ptr)),
         file(std::move(rhs.file)),
         line(std::move(rhs.line)) {
+#ifdef DEBUG
+    if (ptr->counter != 0) {
+      std::cout << "move is not allowed in case of live aliases" << std::endl;
+    }
+    dump_aliases();
+#endif
     assert(ptr->counter == 0);
     rhs.owner = false;
     rhs.ptr = nullptr;
@@ -94,16 +100,15 @@ struct gen_ptr {
 
   ~gen_ptr() {
     remove_source_location();
-    if (ptr && !owner) {
-      --ptr->counter;
-    }
-
-    if (!owner) {
+    if (!owner && ptr) {
+      // rule alias has to be nullptr during destruction
+      std::cout << "each alias has to be null during destruction : " << file
+                << "," << line << std::endl;
       assert(ptr == nullptr);
     }
 
     if (ptr && owner) {
-      dump_live_aliases();
+      dump_all_references();
       assert(ptr->counter == 0);
       delete ptr;
     }
@@ -187,7 +192,17 @@ struct gen_ptr {
     }
 #endif
   }
-  void dump_live_aliases() {
+  void dump_aliases() {
+#ifdef DEBUG
+    if (ptr->counter != 0) {
+      for (const auto& alias : ptr->aliases_locations) {
+        std::cout << "alias : " << alias.second.first << ":"
+                  << alias.second.second << std::endl;
+      }
+    }
+#endif
+  }
+  void dump_all_references() {
 #ifdef DEBUG
     if (ptr->counter != 0) {
       std::cout << "owner : " << ptr->owner_location.first << ":"
