@@ -45,8 +45,7 @@ void test1() {
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
 
-  last.with_source_location(__FILE__, __LINE__);
-  head->next.move_ownership_from(last);
+  head->next.move_ownership_from(last, __FILE__, __LINE__);
 
   traverse(head, 2);
   last.release();

@@ -137,7 +137,9 @@ struct gen_ptr {
     }
   }
 
-  void move_ownership_from(gen_ptr<T>& rhs) {
+  void move_ownership_from(gen_ptr<T>& rhs,
+                           const std::string& file = std::string("undefined"),
+                           const size_t line = 0) {
     rhs.convert_to_alias();
     *this = rhs;
   }
