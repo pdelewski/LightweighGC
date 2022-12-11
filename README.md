@@ -8,4 +8,4 @@ It's safety rules are checked during runtime.
 ## List of rules:
 
 - There is always one owner of resource at any point in time
-- Each alias has to be released before (set to null) before its destructor is called
+- Each alias has to be released (set to null) before its destructor is called
