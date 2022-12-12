@@ -121,6 +121,7 @@ void test7() {
       __FILE__, __LINE__);
 
   (*ptr).move_ownership_from(intptr);
+  assert((**ptr) == 2);
   intptr.release();
 }
 
