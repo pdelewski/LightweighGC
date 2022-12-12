@@ -38,6 +38,7 @@ void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
 }
 
 void test1() {
+  // singly linked list
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   auto last = ucore::make_owning_ptr(new node(2), __FILE__, __LINE__);
 
@@ -52,6 +53,7 @@ void test1() {
 }
 
 void test2() {
+  // circular list
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == true);
@@ -68,6 +70,7 @@ void test2() {
 }
 
 void test3() {
+  // two aliases
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto root = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
@@ -87,6 +90,7 @@ void sink(ucore::gen_ptr<node> n) { n.release(); }
 void sink2(ucore::gen_ptr<node> n) {}
 
 void test4() {
+  // function call with copy
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   alias.with_source_location(__FILE__, __LINE__);
@@ -97,11 +101,23 @@ void test4() {
 }
 
 void test5() {
+  // move semantics
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   alias = head;
   alias.release();
   sink2(std::move(head));
+}
+
+void test6() {
+  // alias to an alias
+  auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
+  auto alias1 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
+  auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
+  alias1 = head;
+  alias2 = alias;
+  alias1.release();
+  alias2.release();
 }
 
 int main() {
@@ -110,5 +126,6 @@ int main() {
   test3();
   test4();
   test5();
+  test6();
   return 0;
 }
