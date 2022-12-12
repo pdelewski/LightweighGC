@@ -8,6 +8,9 @@ namespace ucore {
 
 struct int_8 : public resource {
   int_8(int8_t s = 0) : storage(s) {}
+  operator int8_t() { return storage; }
+
+ private:
   int8_t storage;
 };
 
