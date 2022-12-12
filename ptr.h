@@ -75,7 +75,7 @@ struct gen_ptr : public resource {
   }
 
   gen_ptr(const gen_ptr& rhs) {
-    assert(!is_owner());
+    assert(!rhs.is_owner());
     ptr = rhs.ptr;
     ownership = rhs.ownership;
     file = rhs.file;
@@ -94,6 +94,13 @@ struct gen_ptr : public resource {
     assert((is_owner() && rhs.is_owner()) == false);
     if (ptr && !is_owner()) {
       --ptr->counter;
+    }
+
+    if (ptr && is_owner()) {
+      dump_all_references();
+      assert(ptr->counter == 0);
+      delete ptr;
+      ptr = nullptr;
     }
 
     ptr = rhs.ptr;
@@ -118,6 +125,7 @@ struct gen_ptr : public resource {
       dump_all_references();
       assert(ptr->counter == 0);
       delete ptr;
+      ptr = nullptr;
     }
   }
 
