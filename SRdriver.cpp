@@ -15,25 +15,23 @@ struct node : public ucore::resource {
 void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
   std::set<ucore::gen_ptr<node>> visited;
   auto current = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
-  current.with_source_location(__FILE__, __LINE__);
-  current = n;
+  current.with_source_location(__FILE__, __LINE__) = n;
   auto counter = 0;
   assert(current.is_owner() == false);
   while (current) {
-    if (visited.find(current) != visited.end()) {
+    if (visited.find(current.with_source_location(__FILE__, __LINE__)) !=
+        visited.end()) {
       break;
     }
-    current.with_source_location(__FILE__, __LINE__);
-    visited.insert(current);
+    visited.insert(current.with_source_location(__FILE__, __LINE__));
 
-    current.with_source_location(__FILE__, __LINE__);
-    current = current->next;
+    current.with_source_location(__FILE__, __LINE__) = current->next;
     ++counter;
   }
   for (auto it = visited.begin(); it != visited.end(); it++) {
-    it->release();
+    it->with_source_location(__FILE__, __LINE__).release();
   }
-  current.release();
+  current.with_source_location(__FILE__, __LINE__).release();
   assert(counter == expected_size);
 }
 
@@ -49,7 +47,7 @@ void test1() {
   head->next.move_ownership_from(last, __FILE__, __LINE__);
 
   traverse(head, 2);
-  last.release();
+  last.with_source_location(__FILE__, __LINE__).release();
 }
 
 void test2() {
@@ -74,16 +72,12 @@ void test3() {
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto root = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
-  alias.with_source_location(__FILE__, __LINE__);
-  alias = root;
-  alias2.with_source_location(__FILE__, __LINE__);
-  alias2 = root;
+  alias.with_source_location(__FILE__, __LINE__) = root;
+  alias2.with_source_location(__FILE__, __LINE__) = root;
 
   assert(alias.alias_counter() == 2);
-  alias.with_source_location(__FILE__, __LINE__);
-  alias.release();
-  alias2.with_source_location(__FILE__, __LINE__);
-  alias2.release();
+  alias.with_source_location(__FILE__, __LINE__).release();
+  alias2.with_source_location(__FILE__, __LINE__).release();
 }
 
 void sink(ucore::gen_ptr<node> n) { n.release(); }
@@ -93,20 +87,18 @@ void test4() {
   // function call with copy
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
-  alias.with_source_location(__FILE__, __LINE__);
-  alias = head;
-  alias.with_source_location(__FILE__, __LINE__);
-  sink(alias);
-  alias.release();
+  alias.with_source_location(__FILE__, __LINE__) = head;
+  sink(alias.with_source_location(__FILE__, __LINE__));
+  alias.with_source_location(__FILE__, __LINE__).release();
 }
 
 void test5() {
   // move semantics
   auto alias = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
-  alias = head;
-  alias.release();
-  sink2(std::move(head));
+  alias.with_source_location(__FILE__, __LINE__) = head;
+  alias.with_source_location(__FILE__, __LINE__).release();
+  sink2(std::move(head.with_source_location(__FILE__, __LINE__)));
 }
 
 void test6() {
@@ -114,10 +106,10 @@ void test6() {
   auto head = ucore::make_owning_ptr(new node(1), __FILE__, __LINE__);
   auto alias1 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
-  alias1 = head;
-  alias2 = alias1;
-  alias1.release();
-  alias2.release();
+  alias1.with_source_location(__FILE__, __LINE__) = head;
+  alias2.with_source_location(__FILE__, __LINE__) = alias1;
+  alias1.with_source_location(__FILE__, __LINE__).release();
+  alias2.with_source_location(__FILE__, __LINE__).release();
 }
 
 int main() {

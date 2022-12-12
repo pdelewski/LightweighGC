@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <list>
 #include <map>
 #include <stdexcept>
 #include <utility>
@@ -10,7 +11,15 @@
 namespace ucore {
 enum ptr_ownersip_property { OWNER, ALIAS };
 
-struct rule_break_exception : public std::runtime_error {};
+struct instruction {
+  std::string op;
+  std::string file;
+  size_t line;
+};
+
+struct rule_break_exception : public std::runtime_error {
+  rule_break_exception(const std::string& what) : std::runtime_error(what) {}
+};
 
 struct resource {
   resource() : counter(0) {}
@@ -48,13 +57,15 @@ struct gen_ptr {
         ptr(std::move(rhs.ptr)),
         file(std::move(rhs.file)),
         line(std::move(rhs.line)) {
+#ifdef SAFE_REF_THROW_EXCEPTIONS
+#endif
 #ifdef DEBUG
     if (ptr->counter != 0) {
       std::cout << "move is not allowed in case of live aliases" << std::endl;
+      dump_aliases();
     }
-    dump_aliases();
-#endif
     assert(ptr->counter == 0);
+#endif
     rhs.owner = false;
     rhs.ptr = nullptr;
     init_source_location(file, line);
@@ -123,12 +134,12 @@ struct gen_ptr {
 
   operator bool() { return ptr != 0; }
 
-  gen_ptr& with_source_location(const std::string& f, size_t l) {
+  gen_ptr& with_source_location(const std::string& f, size_t l) const {
 #ifdef DEBUG
     file = f;
     line = l;
 #endif
-    return *this;
+    return const_cast<gen_ptr&>(*this);
   }
 
   bool is_owner() const { return owner; }
@@ -224,6 +235,7 @@ struct gen_ptr {
 #ifdef DEBUG
   mutable std::string file;
   mutable size_t line;
+  mutable std::list<instruction> instructions_log;
 #endif
 };
 
