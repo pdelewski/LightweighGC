@@ -4,10 +4,13 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <utility>
 
 namespace ucore {
 enum ptr_ownersip_property { OWNER, ALIAS };
+
+struct rule_break_exception : public std::runtime_error {};
 
 struct resource {
   resource() : counter(0) {}

@@ -115,7 +115,7 @@ void test6() {
   auto alias1 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   alias1 = head;
-  alias2 = alias;
+  alias2 = alias1;
   alias1.release();
   alias2.release();
 }
