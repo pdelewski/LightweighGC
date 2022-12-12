@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 
+#include "primitives.h"
 #include "ptr.h"
 
 struct node : public ucore::resource {
@@ -8,7 +9,7 @@ struct node : public ucore::resource {
   node() { value = 0; }
   node(int v) : value(v) {}
   ucore::gen_ptr<node> next =
-      ucore::gen_ptr<node>(true, nullptr, __FILE__, __LINE__);
+      ucore::gen_ptr<node>(ucore::OWNER, nullptr, __FILE__, __LINE__);
   void dump() { std::cout << "node:" << value << std::endl; }
 };
 
@@ -112,6 +113,17 @@ void test6() {
   alias2.with_source_location(__FILE__, __LINE__).release();
 }
 
+void test7() {
+  auto intptr = ucore::make_owning_ptr(new ucore::int_8(2), __FILE__, __LINE__);
+  auto ptr = ucore::make_owning_ptr(
+      new ucore::gen_ptr<ucore::int_8>(
+          ucore::make_owning_ptr(new ucore::int_8(1), __FILE__, __LINE__)),
+      __FILE__, __LINE__);
+
+  (*ptr).move_ownership_from(intptr);
+  intptr.release();
+}
+
 int main() {
   test1();
   test2();
@@ -119,5 +131,6 @@ int main() {
   test4();
   test5();
   test6();
+  test7();
   return 0;
 }

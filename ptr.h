@@ -8,8 +8,10 @@
 #include <stdexcept>
 #include <utility>
 
+#include "resource.h"
+
 namespace ucore {
-enum ptr_ownersip_property { OWNER, ALIAS };
+enum ptr_ownersip_property { ALIAS = 0, OWNER = 1 };
 
 struct instruction {
   std::string op;
@@ -21,39 +23,30 @@ struct rule_break_exception : public std::runtime_error {
   rule_break_exception(const std::string& what) : std::runtime_error(what) {}
 };
 
-struct resource {
-  resource() : counter(0) {}
-  int counter;
-#ifdef DEBUG
-  std::map<size_t, std::pair<std::string, size_t>> aliases_locations;
-  std::pair<std::string, size_t> owner_location;
-#endif
-};
-
 template <typename T>
-struct gen_ptr {
+struct gen_ptr : public resource {
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
-      : owner(true), ptr(nullptr) {
+      : ownership(OWNER), ptr(nullptr) {
     init_source_location(file, line);
   }
   gen_ptr(T* p, const std::string& file = std::string("undefined"),
           const size_t line = 0)
-      : owner(false), ptr(p) {
+      : ownership(ALIAS), ptr(p) {
     init_source_location(file, line);
   }
-  explicit gen_ptr(bool owner, T* p,
+  explicit gen_ptr(ptr_ownersip_property owner, T* p,
                    const std::string& file = std::string("undefined"),
                    const size_t line = 0)
-      : owner(owner), ptr(p), file(file) {
-    if (ptr && !owner) {
+      : ownership(owner), ptr(p), file(file) {
+    if (ptr && !is_owner()) {
       ++ptr->counter;
     }
     init_source_location(file, line);
   }
 
   gen_ptr(gen_ptr&& rhs)
-      : owner(std::move(rhs.owner)),
+      : ownership(std::move(rhs.ownership)),
         ptr(std::move(rhs.ptr)),
         file(std::move(rhs.file)),
         line(std::move(rhs.line)) {
@@ -66,14 +59,14 @@ struct gen_ptr {
     }
     assert(ptr->counter == 0);
 #endif
-    rhs.owner = false;
+    rhs.ownership = ALIAS;
     rhs.ptr = nullptr;
     init_source_location(file, line);
   }
 
   gen_ptr& operator=(gen_ptr&& rhs) {
     remove_source_location();
-    owner = std::move(rhs.owner);
+    ownership = std::move(rhs.ownership);
     ptr = std::move(rhs.ptr);
     file = std::move(rhs.file);
     line = std::move(rhs.line);
@@ -82,13 +75,13 @@ struct gen_ptr {
   }
 
   gen_ptr(const gen_ptr& rhs) {
-    assert(!rhs.owner);
+    assert(!is_owner());
     ptr = rhs.ptr;
-    owner = rhs.owner;
+    ownership = rhs.ownership;
     file = rhs.file;
     line = rhs.line;
     init_source_location(file, line);
-    if (ptr && !owner) {
+    if (ptr && !is_owner()) {
       ++ptr->counter;
     }
   }
@@ -98,14 +91,14 @@ struct gen_ptr {
       return *this;
     }
     remove_source_location();
-    assert((owner && rhs.is_owner()) == false);
-    if (ptr && !owner) {
+    assert((is_owner() && rhs.is_owner()) == false);
+    if (ptr && !is_owner()) {
       --ptr->counter;
     }
 
     ptr = rhs.ptr;
 
-    if (ptr && !owner) {
+    if (ptr && !is_owner()) {
       ++ptr->counter;
     }
     move_source_location();
@@ -114,14 +107,14 @@ struct gen_ptr {
 
   ~gen_ptr() {
     remove_source_location();
-    if (!owner && ptr) {
+    if (!is_owner() && ptr) {
       // rule alias has to be nullptr during destruction
       std::cout << "each alias has to be null during destruction : " << file
                 << "," << line << std::endl;
       assert(ptr == nullptr);
     }
 
-    if (ptr && owner) {
+    if (ptr && is_owner()) {
       dump_all_references();
       assert(ptr->counter == 0);
       delete ptr;
@@ -129,6 +122,8 @@ struct gen_ptr {
   }
 
   T* operator->() { return ptr; }
+
+  T& operator*() { return *ptr; }
 
   bool operator<(const gen_ptr& rhs) const { return ptr < rhs.ptr; }
 
@@ -142,13 +137,14 @@ struct gen_ptr {
     return const_cast<gen_ptr&>(*this);
   }
 
-  bool is_owner() const { return owner; }
+  bool is_owner() const { return ownership == OWNER; }
 
-  void convert_to_alias() {
-    owner = false;
+  gen_ptr& convert_to_alias() {
+    ownership = ALIAS;
     if (ptr) {
       ++ptr->counter;
     }
+    return *this;
   }
 
   void move_ownership_from(gen_ptr<T>& rhs,
@@ -162,10 +158,10 @@ struct gen_ptr {
 
   void release() const {
     remove_source_location();
-    if (ptr && !owner) {
+    if (ptr && !is_owner()) {
       --ptr->counter;
     }
-    owner = false;
+    ownership = ALIAS;
     ptr = nullptr;
     file = std::string();
     line = 0;
@@ -177,7 +173,7 @@ struct gen_ptr {
     this->file = file;
     this->line = line;
     if (ptr) {
-      if (owner) {
+      if (is_owner()) {
         ptr->owner_location = std::make_pair(file, line);
       } else {
         ptr->aliases_locations.insert(
@@ -199,7 +195,7 @@ struct gen_ptr {
   void move_source_location() {
 #ifdef DEBUG
     if (ptr) {
-      if (owner) {
+      if (is_owner()) {
         ptr->owner_location = std::make_pair(file, line);
       } else {
         ptr->aliases_locations.insert(
@@ -230,7 +226,7 @@ struct gen_ptr {
     }
 #endif
   }
-  mutable bool owner;
+  mutable ptr_ownersip_property ownership;
   mutable T* ptr;
 #ifdef DEBUG
   mutable std::string file;
@@ -242,12 +238,12 @@ struct gen_ptr {
 template <typename T>
 auto make_owning_ptr(T* ptr, const std::string& file = std::string(),
                      const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(true, ptr, file, line);
+  return gen_ptr<T>(OWNER, ptr, file, line);
 }
 
 template <typename T>
 auto make_alias(T* ptr = nullptr, const std::string& file = std::string(),
                 const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(false, ptr, file, line);
+  return gen_ptr<T>(ALIAS, ptr, file, line);
 }
 }  // namespace ucore
