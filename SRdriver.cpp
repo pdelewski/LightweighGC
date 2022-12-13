@@ -114,16 +114,26 @@ void test6() {
 }
 
 void test7() {
-  auto intptr = ucore::make_owning_ptr(new ucore::int_8(2), __FILE__, __LINE__);
-  auto initialintptr = ucore::make_owning_ptr(new ucore::int_8(1), __FILE__, __LINE__);
-  auto ptr = ucore::make_owning_ptr(
-      new ucore::gen_ptr<ucore::int_8>(
+  using namespace ucore;
+  auto intptr = make_owning_ptr(new int_8(2), __FILE__, __LINE__);
+  auto initialintptr = make_owning_ptr(new int_8(1), __FILE__, __LINE__);
+  auto ptr = make_owning_ptr(
+      new gen_ptr<int_8>(
           std::move(initialintptr)),
       __FILE__, __LINE__);
 
   (*ptr).move_ownership_from(intptr);
   assert((**ptr) == 2);
   intptr.release();
+}
+
+void test8() {
+  using namespace ucore;
+  // distinguishing heap and stack address is needed
+  // to prevent creating more than one owner
+  gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
+  gen_ptr<gen_ptr<int_8>> pp = gen_ptr<gen_ptr<int_8>>(ALIAS, &p);
+  pp.release();
 }
 
 int main() {
@@ -134,5 +144,6 @@ int main() {
   test5();
   test6();
   test7();
+  test8();
   return 0;
 }
