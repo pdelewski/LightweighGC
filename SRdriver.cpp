@@ -134,6 +134,16 @@ void test8() {
   pp.release();
 }
 
+void test9() {
+  using namespace ucore;
+  using p_int8 = gen_ptr<int_8>;
+  using pp_int8 = gen_ptr<gen_ptr<int_8>>;
+  p_int8 p(OWNER, new int_8(1));
+  pp_int8 p2(ALIAS, &p);
+  assert(** p2 = 1);
+  p2.release();
+}
+
 int main() {
   test1();
   test2();
@@ -143,5 +153,6 @@ int main() {
   test6();
   test7();
   test8();
+  test9();
   return 0;
 }

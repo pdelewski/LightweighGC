@@ -137,9 +137,15 @@ struct gen_ptr : public resource {
     }
   }
 
-  T* operator->() { return ptr; }
+  T* operator->() {
+    assert(ptr != nullptr);
+    return ptr;
+  }
 
-  T& operator*() { return *ptr; }
+  T& operator*() {
+    assert(ptr != nullptr);
+    return *ptr;
+  }
 
   bool operator<(const gen_ptr& rhs) const { return ptr < rhs.ptr; }
 
