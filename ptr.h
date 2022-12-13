@@ -27,18 +27,18 @@ template <typename T>
 struct gen_ptr : public resource {
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
-      : ownership(OWNER), ptr(nullptr) {
+      : ownership(OWNER), ptr(nullptr), size(1) {
     init_source_location(file, line);
   }
   gen_ptr(T* p, const std::string& file = std::string("undefined"),
           const size_t line = 0)
-      : ownership(ALIAS), ptr(p) {
+      : ownership(ALIAS), ptr(p), size(1) {
     init_source_location(file, line);
   }
-  explicit gen_ptr(ptr_ownersip_property owner, T* p,
+  explicit gen_ptr(ptr_ownersip_property owner, T* p, size_t s = 1,
                    const std::string& file = std::string("undefined"),
                    const size_t line = 0)
-      : ownership(owner), ptr(p), file(file) {
+      : ownership(owner), ptr(p), size(s), file(file), line(line) {
 #ifdef DEBUG
     if (ptr && is_owner()) {
       if (ptr->heap_addresses.find((size_t)p) == ptr->heap_addresses.end()) {
@@ -251,6 +251,7 @@ struct gen_ptr : public resource {
   }
   mutable ptr_ownersip_property ownership;
   mutable T* ptr;
+  mutable size_t size;
 #ifdef DEBUG
   mutable std::string file;
   mutable size_t line;
@@ -259,14 +260,15 @@ struct gen_ptr : public resource {
 };
 
 template <typename T>
-auto make_owning_ptr(T* ptr, const std::string& file = std::string(),
+auto make_owning_ptr(T* ptr, size_t size = 0,
+                     const std::string& file = std::string(),
                      const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(OWNER, ptr, file, line);
+  return gen_ptr<T>(OWNER, ptr, size, file, line);
 }
 
 template <typename T>
 auto make_alias(T* ptr = nullptr, const std::string& file = std::string(),
                 const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(ALIAS, ptr, file, line);
+  return gen_ptr<T>(ALIAS, ptr, 1, file, line);
 }
 }  // namespace ucore
