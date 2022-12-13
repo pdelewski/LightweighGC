@@ -117,10 +117,8 @@ void test7() {
   using namespace ucore;
   auto intptr = make_owning_ptr(new int_8(2), __FILE__, __LINE__);
   auto initialintptr = make_owning_ptr(new int_8(1), __FILE__, __LINE__);
-  auto ptr = make_owning_ptr(
-      new gen_ptr<int_8>(
-          std::move(initialintptr)),
-      __FILE__, __LINE__);
+  auto ptr = make_owning_ptr(new gen_ptr<int_8>(std::move(initialintptr)),
+                             __FILE__, __LINE__);
 
   (*ptr).move_ownership_from(intptr);
   assert((**ptr) == 2);

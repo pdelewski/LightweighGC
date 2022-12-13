@@ -39,6 +39,14 @@ struct gen_ptr : public resource {
                    const std::string& file = std::string("undefined"),
                    const size_t line = 0)
       : ownership(owner), ptr(p), file(file) {
+#ifdef DEBUG
+    if (ptr && is_owner()) {
+      if (ptr->heap_addresses.find((size_t)p) == ptr->heap_addresses.end()) {
+        std::cout << "owning variable on stack is not allowed" << std::endl;
+      }
+      assert(ptr->heap_addresses.find((size_t)p) != ptr->heap_addresses.end());
+    }
+#endif
     if (ptr && !is_owner()) {
       ++ptr->counter;
     }
