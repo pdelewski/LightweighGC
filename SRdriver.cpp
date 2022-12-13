@@ -115,9 +115,10 @@ void test6() {
 
 void test7() {
   auto intptr = ucore::make_owning_ptr(new ucore::int_8(2), __FILE__, __LINE__);
+  auto initialintptr = ucore::make_owning_ptr(new ucore::int_8(1), __FILE__, __LINE__);
   auto ptr = ucore::make_owning_ptr(
       new ucore::gen_ptr<ucore::int_8>(
-          ucore::make_owning_ptr(new ucore::int_8(1), __FILE__, __LINE__)),
+          std::move(initialintptr)),
       __FILE__, __LINE__);
 
   (*ptr).move_ownership_from(intptr);

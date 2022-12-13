@@ -148,17 +148,18 @@ struct gen_ptr : public resource {
   bool is_owner() const { return ownership == OWNER; }
 
   gen_ptr& convert_to_alias() {
+    assert(ptr == nullptr);
     ownership = ALIAS;
-    if (ptr) {
-      ++ptr->counter;
-    }
     return *this;
   }
 
   void move_ownership_from(gen_ptr<T>& rhs,
                            const std::string& file = std::string("undefined"),
                            const size_t line = 0) {
-    rhs.convert_to_alias();
+    rhs.ownership = ALIAS;
+    if (rhs.ptr) {
+      ++rhs.ptr->counter;
+    }
     *this = rhs;
   }
 
