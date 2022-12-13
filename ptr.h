@@ -25,6 +25,10 @@ struct rule_break_exception : public std::runtime_error {
 
 template <typename T>
 struct gen_ptr : public resource {
+  template <typename U>
+  friend auto make_alias(const U& p, const std::string& file, const size_t line)
+      -> U;
+
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
       : ownership(OWNER), ptr(nullptr), size(1) {
@@ -107,7 +111,10 @@ struct gen_ptr : public resource {
     if (ptr && is_owner()) {
       dump_all_references();
       assert(ptr->counter == 0);
-      delete ptr;
+      if (size > 1)
+        delete[] ptr;
+      else
+        delete ptr;
       ptr = nullptr;
     }
 
@@ -271,4 +278,22 @@ auto make_alias(T* ptr = nullptr, const std::string& file = std::string(),
                 const size_t line = 0) -> gen_ptr<T> {
   return gen_ptr<T>(ALIAS, ptr, 1, file, line);
 }
+template <typename T>
+auto make_owning_ptr(size_t size = 1, const std::string& file = std::string(),
+                     const size_t line = 0) -> gen_ptr<T> {
+  T* p = nullptr;
+  if (size > 1) {
+    p = new T[size];  // not exception safe
+  } else {
+    p = new T;
+  }
+  return gen_ptr<T>(OWNER, p, size, file, line);
+}
+
+template <typename PTR>
+auto make_alias(const PTR& p, const std::string& file = std::string(),
+                const size_t line = 0) -> PTR {
+  return PTR(ALIAS, p.ptr, p.size, file, line);
+}
+
 }  // namespace ucore
