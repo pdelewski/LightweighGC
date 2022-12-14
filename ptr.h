@@ -60,6 +60,7 @@ struct gen_ptr : public resource {
   gen_ptr(gen_ptr&& rhs)
       : ownership(std::move(rhs.ownership)),
         ptr(std::move(rhs.ptr)),
+        size(std::move(rhs.size)),
         file(std::move(rhs.file)),
         line(std::move(rhs.line)) {
 #ifdef SAFE_REF_THROW_EXCEPTIONS
@@ -80,6 +81,7 @@ struct gen_ptr : public resource {
     remove_source_location();
     ownership = std::move(rhs.ownership);
     ptr = std::move(rhs.ptr);
+    size = rhs.size;
     file = std::move(rhs.file);
     line = std::move(rhs.line);
     move_source_location();
@@ -89,6 +91,7 @@ struct gen_ptr : public resource {
   gen_ptr(const gen_ptr& rhs) {
     assert(!rhs.is_owner());
     ptr = rhs.ptr;
+    size = rhs.size;
     ownership = rhs.ownership;
     file = rhs.file;
     line = rhs.line;
