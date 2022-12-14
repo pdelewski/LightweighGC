@@ -125,9 +125,15 @@ void test8() {
     gen_ptr<gen_ptr<int_8>> pp = gen_ptr<gen_ptr<int_8>>(ALIAS, &p);
   }
   {
-    gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
-    gen_ptr<gen_ptr<int_8>> pp =
-        gen_ptr<gen_ptr<int_8>>(ALIAS, new gen_ptr<int_8>(std::move(p)));
+    auto alias = make_alias_ext<gen_ptr<gen_ptr<int_8>>>();
+    gen_ptr<int_8> p =
+        make_owning_ptr<int_8>(1);  // gen_ptr<int_8>(OWNER, new int_8(1));
+    gen_ptr<gen_ptr<int_8>> pp = make_owning_ptr<gen_ptr<int_8>>(
+        make_owning_ptr<int_8>(1) /*std::move(p)*/);
+    alias = pp;
+    alias.release();
+    // auto alias = make_alias(pp);
+    //     gen_ptr<gen_ptr<int_8>>(OWNER, new gen_ptr<int_8>(std::move(p)));
   }
 }
 
