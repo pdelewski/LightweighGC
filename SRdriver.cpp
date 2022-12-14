@@ -76,8 +76,7 @@ void test3() {
   alias2.with_source_location(__FILE__, __LINE__).release();
 }
 
-void sink(ucore::gen_ptr<node> n) { n.release(); }
-void sink2(ucore::gen_ptr<node> n) {}
+void sink(ucore::gen_ptr<node> n) {}
 
 void test4() {
   // function call with copy
@@ -94,7 +93,7 @@ void test5() {
   auto head = ucore::make_owning_ptr(new node(1), 1, __FILE__, __LINE__);
   alias.with_source_location(__FILE__, __LINE__) = head;
   alias.with_source_location(__FILE__, __LINE__).release();
-  sink2(std::move(head.with_source_location(__FILE__, __LINE__)));
+  sink(std::move(head.with_source_location(__FILE__, __LINE__)));
 }
 
 void test6() {
