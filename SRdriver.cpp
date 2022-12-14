@@ -131,7 +131,6 @@ void test9() {
   p_int8 p(OWNER, new int_8(1));
   pp_int8 p2(ALIAS, &p);
   assert(** p2 = 1);
-  p2.release();
 }
 
 void test10() {
