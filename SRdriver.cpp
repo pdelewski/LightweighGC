@@ -120,8 +120,15 @@ void test8() {
   using namespace ucore;
   // distinguishing heap and stack address is needed
   // to prevent creating more than one owner
-  gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
-  gen_ptr<gen_ptr<int_8>> pp = gen_ptr<gen_ptr<int_8>>(ALIAS, &p);
+  {
+    gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
+    gen_ptr<gen_ptr<int_8>> pp = gen_ptr<gen_ptr<int_8>>(ALIAS, &p);
+  }
+  {
+    gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
+    gen_ptr<gen_ptr<int_8>> pp =
+        gen_ptr<gen_ptr<int_8>>(ALIAS, new gen_ptr<int_8>(std::move(p)));
+  }
 }
 
 void test9() {
