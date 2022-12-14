@@ -29,10 +29,6 @@ void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
     current.with_source_location(__FILE__, __LINE__) = current->next;
     ++counter;
   }
-  for (auto it = visited.begin(); it != visited.end(); it++) {
-    it->with_source_location(__FILE__, __LINE__).release();
-  }
-  current.with_source_location(__FILE__, __LINE__).release();
   assert(counter == expected_size);
 }
 
