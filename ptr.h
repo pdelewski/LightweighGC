@@ -26,8 +26,8 @@ struct rule_break_exception : public std::runtime_error {
 template <typename T>
 struct gen_ptr : public resource {
   template <typename U>
-  friend auto make_alias(const U& p, const std::string& file, const size_t line)
-      -> U;
+  friend auto make_alias(const gen_ptr<U>& p, const std::string& file,
+                         const size_t line) -> gen_ptr<U>;
 
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
@@ -129,18 +129,21 @@ struct gen_ptr : public resource {
 
   ~gen_ptr() {
     remove_source_location();
-    if (!is_owner() && ptr) {
-      // rule alias has to be nullptr during destruction
-      std::cout << "each alias has to be null during destruction : " << file
-                << "," << line << std::endl;
-      assert(ptr == nullptr);
-    }
-
     if (ptr && is_owner()) {
       dump_all_references();
       assert(ptr->counter == 0);
-      delete ptr;
+      if (size > 1)
+        delete[] ptr;
+      else
+        delete ptr;
       ptr = nullptr;
+    }
+    if (ptr && !is_owner()) {
+      --ptr->counter;
+      ownership = ALIAS;
+      ptr = nullptr;
+      file = std::string();
+      line = 0;
     }
   }
 
@@ -279,7 +282,8 @@ auto make_alias(T* ptr = nullptr, const std::string& file = std::string(),
   return gen_ptr<T>(ALIAS, ptr, 1, file, line);
 }
 template <typename T>
-auto make_owning_ptr(size_t size = 1, const std::string& file = std::string(),
+auto make_owning_ptr(T val, size_t size = 1,
+                     const std::string& file = std::string(),
                      const size_t line = 0) -> gen_ptr<T> {
   T* p = nullptr;
   if (size > 1) {
@@ -290,10 +294,10 @@ auto make_owning_ptr(size_t size = 1, const std::string& file = std::string(),
   return gen_ptr<T>(OWNER, p, size, file, line);
 }
 
-template <typename PTR>
-auto make_alias(const PTR& p, const std::string& file = std::string(),
-                const size_t line = 0) -> PTR {
-  return PTR(ALIAS, p.ptr, p.size, file, line);
+template <typename T>
+auto make_alias(const gen_ptr<T>& p, const std::string& file = std::string(),
+                const size_t line = 0) -> gen_ptr<T> {
+  return gen_ptr<T>(ALIAS, p.ptr, p.size, file, line);
 }
 
 }  // namespace ucore

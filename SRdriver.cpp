@@ -48,7 +48,6 @@ void test1() {
   head->next.move_ownership_from(last, __FILE__, __LINE__);
 
   traverse(head, 2);
-  last.with_source_location(__FILE__, __LINE__).release();
 }
 
 void test2() {
@@ -109,20 +108,17 @@ void test6() {
   auto alias2 = ucore::make_alias<node>(nullptr, __FILE__, __LINE__);
   alias1.with_source_location(__FILE__, __LINE__) = head;
   alias2.with_source_location(__FILE__, __LINE__) = alias1;
-  alias1.with_source_location(__FILE__, __LINE__).release();
-  alias2.with_source_location(__FILE__, __LINE__).release();
 }
 
 void test7() {
   using namespace ucore;
-  auto intptr = make_owning_ptr(new int_8(2), 1, __FILE__, __LINE__);
   auto initialintptr = make_owning_ptr(new int_8(1), 1, __FILE__, __LINE__);
   auto ptr = make_owning_ptr(new gen_ptr<int_8>(std::move(initialintptr)), 1,
                              __FILE__, __LINE__);
 
+  auto intptr = make_owning_ptr(new int_8(2), 1, __FILE__, __LINE__);
   (*ptr).move_ownership_from(intptr);
   assert((**ptr) == 2);
-  intptr.release();
 }
 
 void test8() {
@@ -131,7 +127,6 @@ void test8() {
   // to prevent creating more than one owner
   gen_ptr<int_8> p = gen_ptr<int_8>(OWNER, new int_8(1));
   gen_ptr<gen_ptr<int_8>> pp = gen_ptr<gen_ptr<int_8>>(ALIAS, &p);
-  pp.release();
 }
 
 void test9() {
@@ -144,6 +139,11 @@ void test9() {
   p2.release();
 }
 
+void test10() {
+  using namespace ucore;
+  auto p = make_owning_ptr<int_8>(10);
+}
+
 int main() {
   test1();
   test2();
@@ -154,5 +154,6 @@ int main() {
   test7();
   test8();
   test9();
+  test10();
   return 0;
 }
