@@ -9,7 +9,7 @@ struct node : public ucore::resource {
   node() { value = 0; }
   node(int v) : value(v) {}
   ucore::gen_ptr<node> next =
-      ucore::gen_ptr<node>(ucore::OWNER, nullptr, 1, __FILE__, __LINE__);
+      ucore::gen_ptr<node>(ucore::ALIAS, nullptr, 1, __FILE__, __LINE__);
   void dump() { std::cout << "node:" << value << std::endl; }
 };
 
@@ -36,11 +36,8 @@ void test1() {
   // singly linked list
   auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
   auto last = ucore::make_owning_ptr<node>(2, 1, __FILE__, __LINE__);
-
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
-  assert(head->next.is_owner() == true);
-
   head->next.move_ownership_from(last, __FILE__, __LINE__);
 
   traverse(head, 2);
@@ -50,10 +47,7 @@ void test2() {
   // circular list
   auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
   assert(head.is_owner() == true);
-  assert(head->next.is_owner() == true);
-
-  // head->next.move_ownership_from(head);
-  head->next.convert_to_alias();
+  assert(head->next.is_owner() == false);
   head->next = head;
 
   traverse(head, 1);
