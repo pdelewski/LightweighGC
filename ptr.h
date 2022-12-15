@@ -26,10 +26,12 @@ struct rule_break_exception : public std::runtime_error {
 template <typename T>
 struct gen_ptr : public resource {
   template <typename U>
-  friend auto make_alias(const gen_ptr<U>& owner) -> gen_ptr<U>;
+  friend auto make_alias(const U& owner, size_t size, const std::string& file,
+                         const size_t line) -> U;
 
   template <typename U>
-  friend auto make_alias_ext() -> U;
+  friend auto make_alias(size_t size, const std::string& file,
+                         const size_t line) -> U;
 
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
@@ -274,32 +276,24 @@ struct gen_ptr : public resource {
 #endif
 };
 
-template <typename T>
-auto make_owning_ptr(T* ptr, size_t size = 0,
+template <typename T, typename V>
+auto make_owning_ptr(V val, size_t size = 1,
                      const std::string& file = std::string(),
                      const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(OWNER, ptr, size, file, line);
+  return gen_ptr<T>(OWNER, new T(std::move(val)), size, file, line);
 }
 
 template <typename T>
-auto make_alias(T* ptr = nullptr, const std::string& file = std::string(),
-                const size_t line = 0) -> gen_ptr<T> {
-  return gen_ptr<T>(ALIAS, ptr, 1, file, line);
-}
-
-template <typename T, typename V>
-auto make_owning_ptr(V val) -> gen_ptr<T> {
-  return gen_ptr<T>(OWNER, new T(std::move(val)));
+auto make_alias(const T& owner, size_t size = 1,
+                const std::string& file = std::string(), const size_t line = 0)
+    -> T {
+  return T(ALIAS, owner.ptr, size, file, line);
 }
 
 template <typename T>
-auto make_alias(const gen_ptr<T>& owner) -> gen_ptr<T> {
-  return gen_ptr<T>(ALIAS, owner.ptr);
-}
-
-template <typename T>
-auto make_alias_ext() -> T {
-  return T(ALIAS, nullptr);
+auto make_alias(size_t size = 1, const std::string& file = std::string(),
+                const size_t line = 0) -> T {
+  return T(ALIAS, nullptr, size, file, line);
 }
 
 }  // namespace ucore
