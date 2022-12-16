@@ -26,12 +26,11 @@ struct rule_break_exception : public std::runtime_error {
 template <typename T>
 struct gen_ptr : public resource {
   template <typename U>
-  friend auto make_alias(const U& owner, size_t size, const std::string& file,
+  friend auto make_alias(const U& owner, const std::string& file,
                          const size_t line) -> U;
 
   template <typename U>
-  friend auto make_alias(size_t size, const std::string& file,
-                         const size_t line) -> U;
+  friend auto make_alias(const std::string& file, const size_t line) -> U;
 
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
@@ -287,23 +286,28 @@ struct gen_ptr : public resource {
 };
 
 template <typename T, typename V>
-auto make_owning_ptr(V val, size_t size = 1,
-                     const std::string& file = std::string(),
+auto make_owning_ptr(V val, const std::string& file = std::string(),
                      const size_t line = 0) -> gen_ptr<T> {
+  return gen_ptr<T>(OWNER, new T(std::move(val)), 1, file, line);
+}
+
+template <typename T, typename V>
+auto make_owning_array_ptr(V val, size_t size,
+                           const std::string& file = std::string(),
+                           const size_t line = 0) -> gen_ptr<T> {
   return gen_ptr<T>(OWNER, new T(std::move(val)), size, file, line);
 }
 
 template <typename T>
-auto make_alias(const T& owner, size_t size = 1,
-                const std::string& file = std::string(), const size_t line = 0)
-    -> T {
-  return T(ALIAS, owner.ptr, size, file, line);
+auto make_alias(const T& owner, const std::string& file = std::string(),
+                const size_t line = 0) -> T {
+  return T(ALIAS, owner.ptr, 1, file, line);
 }
 
 template <typename T>
-auto make_alias(size_t size = 1, const std::string& file = std::string(),
-                const size_t line = 0) -> T {
-  return T(ALIAS, nullptr, size, file, line);
+auto make_alias(const std::string& file = std::string(), const size_t line = 0)
+    -> T {
+  return T(ALIAS, nullptr, 1, file, line);
 }
 
 }  // namespace ucore

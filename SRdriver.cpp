@@ -14,7 +14,7 @@ struct node : public ucore::resource {
 
 void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
   std::set<ucore::gen_ptr<node>> visited;
-  auto current = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
+  auto current = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
   current.with_source_location(__FILE__, __LINE__) = n;
   auto counter = 0;
   assert(current.is_owner() == false);
@@ -33,8 +33,8 @@ void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
 
 void test1() {
   // singly linked list
-  auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
-  auto last = ucore::make_owning_ptr<node>(2, 1, __FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
+  auto last = ucore::make_owning_ptr<node>(2, __FILE__, __LINE__);
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
   head->next = std::move(last);
@@ -43,7 +43,7 @@ void test1() {
 
 void test2() {
   // circular list
-  auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
   assert(head.is_owner() == true);
   assert(head->next.is_owner() == false);
   head->next = head;
@@ -57,9 +57,9 @@ void test2() {
 
 void test3() {
   // two aliases
-  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
-  auto alias2 = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
-  auto root = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
+  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
+  auto alias2 = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
+  auto root = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
   alias.with_source_location(__FILE__, __LINE__) = root;
   alias2.with_source_location(__FILE__, __LINE__) = root;
 
@@ -72,8 +72,8 @@ void sink(ucore::gen_ptr<node> n) {}
 
 void test4() {
   // function call with copy
-  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
-  auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
+  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
   alias.with_source_location(__FILE__, __LINE__) = head;
   sink(alias.with_source_location(__FILE__, __LINE__));
   alias.with_source_location(__FILE__, __LINE__).release();
@@ -81,8 +81,8 @@ void test4() {
 
 void test5() {
   // move semantics
-  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
-  auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
+  auto alias = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
   alias.with_source_location(__FILE__, __LINE__) = head;
   alias.with_source_location(__FILE__, __LINE__).release();
   sink(std::move(head.with_source_location(__FILE__, __LINE__)));
@@ -90,20 +90,20 @@ void test5() {
 
 void test6() {
   // alias to an alias
-  auto head = ucore::make_owning_ptr<node>(1, 1, __FILE__, __LINE__);
-  auto alias1 = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
-  auto alias2 = ucore::make_alias<ucore::gen_ptr<node>>(1, __FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
+  auto alias1 = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
+  auto alias2 = ucore::make_alias<ucore::gen_ptr<node>>(__FILE__, __LINE__);
   alias1.with_source_location(__FILE__, __LINE__) = head;
   alias2.with_source_location(__FILE__, __LINE__) = alias1;
 }
 
 void test7() {
   using namespace ucore;
-  auto initialintptr = make_owning_ptr<int_8>(1, 1, __FILE__, __LINE__);
+  auto initialintptr = make_owning_ptr<int_8>(1, __FILE__, __LINE__);
   auto ptr = make_owning_ptr<gen_ptr<int_8>>(
-      make_owning_ptr<int_8>(std::move(initialintptr)), 1, __FILE__, __LINE__);
+      make_owning_ptr<int_8>(std::move(initialintptr)), __FILE__, __LINE__);
 
-  auto intptr = make_owning_ptr<int_8>(2, 1, __FILE__, __LINE__);
+  auto intptr = make_owning_ptr<int_8>(2, __FILE__, __LINE__);
   (*ptr).move_ownership_from(intptr);
   assert((**ptr) == 2);
 }
