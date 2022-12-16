@@ -35,7 +35,7 @@ struct gen_ptr : public resource {
 
   gen_ptr(const std::string& file = std::string("undefined"),
           const size_t line = 0)
-      : ownership(OWNER), ptr(nullptr), size(1) {
+      : ownership(ALIAS), ptr(nullptr), size(1) {
     init_source_location(file, line);
   }
   gen_ptr(T* p, const std::string& file = std::string("undefined"),
@@ -88,6 +88,16 @@ struct gen_ptr : public resource {
     size = rhs.size;
     file = std::move(rhs.file);
     line = std::move(rhs.line);
+#ifdef DEBUG
+    if (ptr->counter != 0) {
+      std::cout << "move is not allowed in case of live aliases" << std::endl;
+      dump_aliases();
+    }
+    assert(ptr->counter == 0);
+#endif
+    rhs.ownership = ALIAS;
+    rhs.ptr = nullptr;
+
     move_source_location();
     return *this;
   }

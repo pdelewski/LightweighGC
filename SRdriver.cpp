@@ -8,8 +8,7 @@ struct node : public ucore::resource {
   int value;
   node() { value = 0; }
   node(int v) : value(v) {}
-  ucore::gen_ptr<node> next =
-      ucore::gen_ptr<node>(ucore::ALIAS, nullptr, 1, __FILE__, __LINE__);
+  ucore::gen_ptr<node> next = ucore::gen_ptr<node>(__FILE__, __LINE__);
   void dump() { std::cout << "node:" << value << std::endl; }
 };
 
@@ -38,8 +37,7 @@ void test1() {
   auto last = ucore::make_owning_ptr<node>(2, 1, __FILE__, __LINE__);
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
-  head->next.move_ownership_from(last, __FILE__, __LINE__);
-
+  head->next = std::move(last);
   traverse(head, 2);
 }
 
