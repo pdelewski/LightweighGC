@@ -7,7 +7,7 @@
 namespace ucore {
 
 template <typename T>
-struct list {
+struct list : public resource {
  private:
   template <typename U>
   struct node : public ucore::resource {
