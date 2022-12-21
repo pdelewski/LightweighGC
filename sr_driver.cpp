@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 
+#include "list.h"
 #include "primitives.h"
 #include "ptr.h"
 
@@ -143,6 +144,16 @@ void test10() {
   auto p = make_owning_ptr<int_8>(10);
 }
 
+void test_list() {
+  ucore::list<int> l;
+  l.push_front(5);
+  l.push_front(4);
+  l.push_front(3);
+  l.push_front(2);
+  l.push_front(1);
+  l.traverse();
+}
+
 int main() {
   test1();
   test2();
@@ -154,5 +165,6 @@ int main() {
   test8();
   test9();
   test10();
+  test_list();
   return 0;
 }
