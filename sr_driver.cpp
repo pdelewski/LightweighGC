@@ -151,7 +151,11 @@ void test_list() {
   l.push_front(3);
   l.push_front(2);
   l.push_front(1);
-  l.traverse();
+  auto it = l.begin();
+  while (it != l.end()) {
+    std::cout << *it << std::endl;
+    ++it;
+  }
 }
 
 int main() {

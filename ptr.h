@@ -88,11 +88,13 @@ struct gen_ptr : public resource {
     file = std::move(rhs.file);
     line = std::move(rhs.line);
 #ifdef DEBUG
-    if (ptr->counter != 0) {
-      std::cout << "move is not allowed in case of live aliases" << std::endl;
-      dump_aliases();
+    if (ptr) {
+      if (ptr->counter != 0) {
+        std::cout << "move is not allowed in case of live aliases" << std::endl;
+        dump_aliases();
+      }
+      assert(ptr->counter == 0);
     }
-    assert(ptr->counter == 0);
 #endif
     rhs.ownership = ALIAS;
     rhs.ptr = nullptr;
@@ -173,6 +175,8 @@ struct gen_ptr : public resource {
     return *ptr;
   }
 
+  bool operator==(const gen_ptr& rhs) const { return ptr == rhs.ptr; }
+  bool operator!=(const gen_ptr& rhs) const { return ptr != rhs.ptr; }
   bool operator<(const gen_ptr& rhs) const { return ptr < rhs.ptr; }
 
   operator bool() { return ptr != 0; }
