@@ -1,13 +1,10 @@
 # SafeReference
 
 This repository contains implementation of SafeReference abstraction that is
-yet another attempt to safe memory programming. Of course this is one
-of ingredients of safe programming and currently it does not resolve 
-problems like array indexing and so on.
+yet another attempt to safe memory programming.
 
 It's something between GC (garbage collection) and safety quarantees provided
-during compilation time like in Rust. It does not introduce such friction
-and steep learning curve like borrow checker.
+during compilation time like in Rust.
 
 Safety rules are checked during runtime, however they are pretty lightweight.
 
@@ -17,5 +14,5 @@ rules are not fulfilled.
 
 ## List of rules:
 
-- There is always one owner of resource at any point in time
-- Each alias has to be released (set to null) before its destructor is called
+- There is always one owner of resource at any point in time.
+- There should not be active aliases (not null) during owner releasing.
