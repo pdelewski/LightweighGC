@@ -25,7 +25,8 @@ struct resource {
   static std::set<size_t> heap_addresses;
 #endif
 };
-
+#ifdef DEBUG
 std::set<size_t> resource::heap_addresses;
+#endif
 
 }  // namespace ucore
