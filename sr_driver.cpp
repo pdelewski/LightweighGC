@@ -9,7 +9,7 @@ struct node : public ucore::resource {
   int value;
   node() { value = 0; }
   node(int v) : value(v) {}
-  ucore::gen_ptr<node> next = ucore::gen_ptr<node>(__FILE__, __LINE__);
+  ucore::gen_ptr<node> next;
   void dump() { std::cout << "node:" << value << std::endl; }
 };
 
@@ -34,8 +34,10 @@ void traverse(const ucore::gen_ptr<node>& n, int expected_size) {
 
 void test1() {
   // singly linked list
-  auto head = ucore::make_owning_ptr<node>(1, __FILE__, __LINE__);
-  auto last = ucore::make_owning_ptr<node>(2, __FILE__, __LINE__);
+  auto head = ucore::make_owning_ptr<node>(1);
+  head.with_source_location(__FILE__, __LINE__);
+  auto last = ucore::make_owning_ptr<node>(2);
+  last.with_source_location(__FILE__, __LINE__);
   assert(last.is_owner() == true);
   assert(head.is_owner() == true);
   head->next = std::move(last);
