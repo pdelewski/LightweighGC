@@ -4,6 +4,7 @@
 #include "list.h"
 #include "primitives.h"
 #include "ptr.h"
+#include "vector.h"
 
 struct node : public ucore::resource {
   int value;
@@ -147,7 +148,7 @@ void test10() {
 }
 
 void test_list() {
-  ucore::list<int> l;
+  ucore::list<ucore::int_32> l;
   l.push_front(5);
   l.push_front(4);
   l.push_front(3);
@@ -159,6 +160,8 @@ void test_list() {
     ++it;
   }
 }
+
+void test_vector() { ucore::vector<ucore::int_8> v; }
 
 int main() {
   test1();
@@ -172,5 +175,6 @@ int main() {
   test9();
   test10();
   test_list();
+  test_vector();
   return 0;
 }

@@ -12,4 +12,4 @@ add_executable(SafeReference
         primitives.h
         ptr.h
         resource.h
-        sr_driver.cpp)
+        sr_driver.cpp vector.h)
